@@ -3,13 +3,14 @@ const bcrypt = require('bcrypt');
 const userSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true },
   password: { type: String, required: true },
-  role: { type: String, enum:{ values:['admin', 'user', 'viewer'],  message:'invalid role'}},
+  role: { type: String, enum:{ values:['admin', 'user', 'viewer','customer'],  message:'invalid role'}},
   dob: { type: Date },
   contact: {
     email: { type: String, unique: true, sparse: true },
     mobile: { type: String , unique: true, sparse: true },
   },
   gender: { type: String, enum:{values: ['male', 'female'],message:"invalid Gender"} },
+  image: { type: String },
 });
  userSchema.pre('save', async function (next) {   
    const user = this;

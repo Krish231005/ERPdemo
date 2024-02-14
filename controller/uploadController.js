@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + '.jpg');
     },
 });
-const upload = multer({ storage: storage }).array('images',5);
+const upload = multer({ storage: storage }).array('mobile',5);
 
 const uploads = (req, res, next) => {
     upload(req, res, async function (err) {

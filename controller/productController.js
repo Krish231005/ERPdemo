@@ -1,96 +1,80 @@
-// const Product=require('../models/product');
-// const productCRUD={
-//     createProduct: async (req, res) => {
-//     try {
-//         const { name, price} = req.body;
-//         const newProduct = new Product({ name, price});
-//         const savedProduct = await newProduct.save();
-//         res.status(201).json(savedProduct);
-//       } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Internal Server Error' });
-//       }
-//     },
-//     findProduct: async (req,res)=>{
-//         try{
-//         const Products= await Product.find();
-//         res.json(Products);
-//     }
-//         catch (error) {
-//             console.error(error);
-//             res.status(500).json({ error: 'Internal Server Error' });
-//           }
-//     },
-//     getById: async (req, res) => {
-//         try {
-//           const productId = req.params.id;
-//           const product = await Product.findById(productId);
-//           if (!product) {
-//             return res.status(404).json({ error: 'Product not found' });
-//           }
-//           res.json(product);
-//         } catch (error) {
-//           console.error(error);
-//           res.status(500).json({ error: 'Internal Server Error' });
-//         }
-//       },
-//     updateById: async (req, res) => {
-//         try {
-//           const productId = req.params.id;
-//           const { name, price } = req.body;
-//           const updatedProduct = await Product.findByIdAndUpdate(
-//             productId,
-//             { name, price },
-//             { new: true }
-//           );
-//           if (!updatedProduct) {
-//             return res.status(404).json({ error: 'Product not found' });
-//           }
-//           res.json(updatedProduct);
-//         } catch (error) {
-//           console.error(error);
-//           res.status(500).json({ error: 'Internal Server Error' });
-//         }
-//       },
-//       deleteById: async (req, res) => {
-//         try {
-//           const productId = req.params.id;
-//           const deletedProduct = await Product.findByIdAndDelete(productId);
-//           if (!deletedProduct) {
-//             return res.status(404).json({ error: 'Product not found' });
-//           }
-//           res.json(deletedProduct);
-//         } catch (error) {
-//           console.error(error);
-//           res.status(500).json({ error: 'Internal Server Error' });
-//         }
-//       },
-//     };
-    
-// module.exports=productCRUD;
-const Product = require('../models/product');
-const successResponse = require('../responses/successResponse');
-const errorResponse = require('../responses/errorResponse');
+const ProductImage = require("../models/productImage");
+const Product = require("../models/product");
+const successResponse = require("../responses/successResponse");
+const errorResponse = require("../responses/errorResponse");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+
 const productController = {
   createProduct: async (req, res) => {
     try {
       const { name, price, inventory } = req.body;
-      const newProduct = new Product({ name, price, inventory });
+
+      if (!req.file) {
+        return errorResponse(res, 400, "Image file is required");
+      }
+      const image = req.file;
+      const imageUrl = `C:\\Users\\krish\\OneDrive\\Pictures\\products\\${image.filename}`;
+      const newProductImage = new ProductImage({
+        imageUrl: imageUrl,
+        productId: null
+      });
+      const savedProductImage = await newProductImage.save();
+      const newProduct = new Product({
+        name,
+        price,
+        inventory
+      });
       const savedProduct = await newProduct.save();
-      successResponse(res, savedProduct, 'Product created successfully');
+      savedProductImage.productId = savedProduct._id;
+      await savedProductImage.save();
+      successResponse(res, { product: savedProduct, image: savedProductImage }, "Product created successfully");
     } catch (error) {
       console.error(error);
-      errorResponse(res, 500, 'Internal Server Error', error);
+      errorResponse(res, 500, "Internal Server Error", error);
     }
   },
+
   getProducts: async (req, res) => {
     try {
       const products = await Product.find();
-      successResponse(res, products, 'Products retrieved successfully');
+      console.log("41",products);
+      successResponse(res, products, "Products retrieved successfully");
     } catch (error) {
       console.error(error);
-      errorResponse(res, 500, 'Internal Server Error', error);
+      errorResponse(res, 500, "Internal Server Error", error);
     }
   },
+
+  getProductDetails: async (req, res) => {
+    try {
+      const productId = req.params.id;
+      console.log('test',productId);
+      const productDetails = await Product.aggregate([
+        {
+          $match: { _id: new ObjectId(productId) }
+        },
+        {
+          $lookup: {
+            from: "productimages",
+            localField: "_id",
+            foreignField: "productId",
+            as: "images"
+          }
+        }
+      ]);
+  
+      if (productDetails.length === 0) {
+        return errorResponse(res, 404, "Product not found");
+      }
+  
+      successResponse(res, productDetails[0], "Product details retrieved successfully");
+    } catch (error) {
+      console.error(error);
+      errorResponse(res, 500, "Internal Server Error", error); // Pass the error object to the error response
+    }
+  }
+  
 };
+
 module.exports = productController;
