@@ -37,8 +37,16 @@ const productController = {
 
   getProducts: async (req, res) => {
     try {
-      const products = await Product.find();
-      console.log("41",products);
+      const products = await Product.aggregate([
+        {
+          $lookup: {
+            from: "productimages",
+            localField: "_id",
+            foreignField: "productId",
+            as: "images"
+          }
+        }
+      ]);
       successResponse(res, products, "Products retrieved successfully");
     } catch (error) {
       console.error(error);
@@ -49,7 +57,7 @@ const productController = {
   getProductDetails: async (req, res) => {
     try {
       const productId = req.params.id;
-      console.log('test',productId);
+      console.log('test', productId);
       const productDetails = await Product.aggregate([
         {
           $match: { _id: new ObjectId(productId) }
@@ -63,18 +71,18 @@ const productController = {
           }
         }
       ]);
-  
+
       if (productDetails.length === 0) {
         return errorResponse(res, 404, "Product not found");
       }
-  
+
       successResponse(res, productDetails[0], "Product details retrieved successfully");
     } catch (error) {
       console.error(error);
       errorResponse(res, 500, "Internal Server Error", error); // Pass the error object to the error response
     }
   }
-  
+
 };
 
 module.exports = productController;
