@@ -3,6 +3,7 @@ const mongooseConnection = require('./db/connection');
 var cors = require('cors');
 const api = require('./api/allApi');
 const app = express();
+app.set('view engine', 'ejs');
  app.use(cors());
 // app.use(express.json());
 // app.options('*', cors());

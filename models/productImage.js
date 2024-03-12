@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
 const productImageSchema = new mongoose.Schema({
-  imageUrl: { type: String, required: true },
+  requestfile:{
+    data: Buffer,
+    contentType: String
+  },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" }
 });
 
