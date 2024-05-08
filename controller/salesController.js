@@ -108,20 +108,6 @@ const salesController = {
         amount: sale.amount,
         date: sale.date.toISOString().split("T")[0], // Extracting only the date part
       }));
-
-      // const timestamp = Date.now(); // Get the current timestamp
-      // const fileName = `bill_${billNumber}_${timestamp}.pdf`; // Construct the file name with a timestamp
-      // const filePath = path.join(__dirname, "../pdfs", fileName); // Define the path where PDF will be saved
-
-      // billNumber++;
-      // generateBillPDF({ customerName: sales[0].customer, customermail: sales[0].customermail, sales }, filePath);
-      // const responseData = {
-      //   sales,
-      //   pdfFilePath: filePath,
-      // };
-  
-  
-
       successResponse(res,sales, "Sales retrieved successfully");
     } catch (error) {
       console.error(error);

@@ -144,7 +144,42 @@ const productController = {
       console.error(error);
       errorResponse(res, 500, "Internal Server Error", error);
     }
+  },
+  addQuantityToProduct: async (req, res) => {
+    try {
+      const { productId, quantityToAdd } = req.body; // Product ID and Quantity to add
+
+      // Check if productId is provided
+      if (!productId) {
+        return errorResponse(res, 400, "Product ID is required");
+      }
+
+      // Check if quantityToAdd is a valid number
+      if (isNaN(quantityToAdd) || quantityToAdd <= 0) {
+        return errorResponse(res, 400, "Quantity to add must be a positive number");
+      }
+
+      // Find the product by its ObjectId
+      const product = await Product.findById(productId);
+
+      // If the product doesn't exist, return an error
+      if (!product) {
+        return errorResponse(res, 404, "Product not found");
+      }
+
+      // Increase the inventory of the product by quantityToAdd
+      product.inventory += parseInt(quantityToAdd);
+
+      // Save the updated product
+      await product.save();
+
+      successResponse(res, { product }, "Quantity added to product successfully");
+    } catch (error) {
+      console.error(error);
+      errorResponse(res, 500, "Internal Server Error", error);
+    }
   }
+  
 };
 
 
